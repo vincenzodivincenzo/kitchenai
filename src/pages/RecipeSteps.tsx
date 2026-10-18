@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { findRecipe } from '../data/recipes'
 import { useApp } from '../state/store'
@@ -33,12 +34,23 @@ export default function RecipeSteps() {
   }
 
   return (
-    <main className="page page--detail">
+    <main className="page page--narrow page--nonav">
       <div className="hero">
-        <img src={recipe.image} alt={recipe.fullTitle} />
+        <motion.img
+          src={recipe.image}
+          alt={recipe.fullTitle}
+          initial={{ scale: 1.08 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+        />
       </div>
 
-      <section className="title-card">
+      <motion.section
+        className="title-card glass glass--strong"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08, type: 'spring', stiffness: 300, damping: 28 }}
+      >
         <div className="title-card__top">
           <h1>{recipe.fullTitle}</h1>
           <p className="title-card__note">
@@ -52,28 +64,43 @@ export default function RecipeSteps() {
             <Icon name="alarm" size={18} /> {recipe.minutes} mins
           </span>
         </div>
-      </section>
+      </motion.section>
 
       <h2 className="section">Receta</h2>
-      <ol className="steps">
+      <motion.ol
+        className="steps glass"
+        initial="hidden"
+        animate="show"
+        variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } } }}
+      >
         {recipe.steps.map((s, i) => (
-          <li key={i} className="step">
+          <motion.li
+            key={i}
+            className="step"
+            variants={{
+              hidden: { opacity: 0, y: 10 },
+              show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 340, damping: 28 } },
+            }}
+          >
             <span className="step__n" aria-hidden="true">
               {i + 1}
             </span>
             <span>{s}</span>
-          </li>
+          </motion.li>
         ))}
-      </ol>
+      </motion.ol>
 
-      <section className="rate-card" aria-labelledby="rate-title">
+      <section className="rate-card glass" aria-labelledby="rate-title">
         <h2 id="rate-title">¿Que te pareció esta receta?</h2>
         <div className="rate-card__row">
           <button type="button" onClick={share} aria-label="Compartir receta">
             <Icon name="share" />
           </button>
-          <button
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.7 }}
+            animate={{ scale: fav ? [1, 1.35, 1] : 1 }}
+            transition={{ duration: 0.35 }}
             onClick={() => {
               toggleFavorite(recipe.id)
               showToast(fav ? 'Quitada de favoritos' : 'Guardada en favoritos')
@@ -82,7 +109,7 @@ export default function RecipeSteps() {
             aria-label={fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}
           >
             <Icon name={fav ? 'favorite' : 'favorite_border'} />
-          </button>
+          </motion.button>
           <button
             type="button"
             onClick={() => {
@@ -107,43 +134,57 @@ export default function RecipeSteps() {
           </button>
         </div>
 
-        {rating ? (
-          <div className="rate-card__panel">
-            <Stars
-              value={myRating ?? 0}
-              size={32}
-              onChange={(v) => {
-                rate(recipe.id, v)
-                setRating(false)
-                showToast(`¡Gracias! Puntuaste con ${v} estrella${v === 1 ? '' : 's'}`)
-              }}
-            />
-          </div>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {rating ? (
+            <motion.div
+              key="rating"
+              className="rate-card__panel"
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 14 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.22 }}
+            >
+              <Stars
+                value={myRating ?? 0}
+                size={34}
+                onChange={(v) => {
+                  rate(recipe.id, v)
+                  setRating(false)
+                  showToast(`¡Gracias! Puntuaste con ${v} estrella${v === 1 ? '' : 's'}`)
+                }}
+              />
+            </motion.div>
+          ) : null}
 
-        {comment ? (
-          <form
-            className="rate-card__panel"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!text.trim()) return
-              setText('')
-              setComment(false)
-              showToast('Comentario enviado. ¡Gracias!')
-            }}
-          >
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Contanos cómo te salió"
-              rows={3}
-              aria-label="Comentario"
-            />
-            <button type="submit" className="btn btn--primary">
-              Enviar
-            </button>
-          </form>
-        ) : null}
+          {comment ? (
+            <motion.form
+              key="comment"
+              className="rate-card__panel"
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 14 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.22 }}
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!text.trim()) return
+                setText('')
+                setComment(false)
+                showToast('Comentario enviado. ¡Gracias!')
+              }}
+            >
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Contanos cómo te salió"
+                rows={3}
+                aria-label="Comentario"
+              />
+              <button type="submit" className="btn btn--primary">
+                Enviar
+              </button>
+            </motion.form>
+          ) : null}
+        </AnimatePresence>
       </section>
 
       <div className="actions">

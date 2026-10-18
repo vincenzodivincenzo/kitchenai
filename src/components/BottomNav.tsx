@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { NavLink } from 'react-router-dom'
 import Icon, { type IconName } from './Icon'
 
@@ -10,21 +11,37 @@ const ITEMS: { to: string; label: string; icon: IconName }[] = [
 
 export default function BottomNav() {
   return (
-    <nav className="nav" aria-label="Navegación principal">
-      <div className="nav__bar">
+    <motion.nav
+      className="nav"
+      aria-label="Navegación principal"
+      initial={{ y: 80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 80, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+    >
+      <div className="nav__bar glass">
         {ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) => `nav__item${isActive ? ' is-active' : ''}`}
           >
-            <span className="nav__pill">
-              <Icon name={item.icon} />
-            </span>
-            <span>{item.label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive ? (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="nav__active"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  />
+                ) : null}
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
-    </nav>
+    </motion.nav>
   )
 }

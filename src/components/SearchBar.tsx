@@ -15,7 +15,7 @@ export default function SearchBar({ value, onChange, placeholder, onSubmit, auto
     onSubmit?.(value)
   }
   return (
-    <form className="search" role="search" onSubmit={submit}>
+    <form className="search glass" role="search" onSubmit={submit}>
       <input
         type="search"
         value={value}

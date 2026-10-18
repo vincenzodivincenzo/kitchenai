@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { RECIPES, type Meal } from '../data/recipes'
 import { useApp } from '../state/store'
-import BottomNav from '../components/BottomNav'
+import CardGrid from '../components/CardGrid'
 import Icon from '../components/Icon'
-import RecipeCard from '../components/RecipeCard'
 import SearchBar from '../components/SearchBar'
 
 const MEALS: Meal[] = ['Desayuno', 'Almuerzo', 'Cena']
@@ -22,77 +22,81 @@ export default function Home() {
   ).sort((a, b) => Number(Boolean(b.popular)) - Number(Boolean(a.popular)))
 
   return (
-    <>
-      <main className="page">
-        <header className="home-head">
-          <div>
-            <h1>Hola, {user?.name}</h1>
-            <p>¿Qué cocinamos hoy?</p>
-          </div>
-          <div className="home-head__icons">
-            <button
-              type="button"
-              aria-label="Notificaciones"
-              onClick={() =>
-                showToast(
-                  favorites.length
-                    ? `Tienes ${favorites.length} receta${favorites.length === 1 ? '' : 's'} guardada${favorites.length === 1 ? '' : 's'} para cocinar`
-                    : 'Sin notificaciones nuevas',
-                )
-              }
-            >
-              <Icon name="notifications" />
-            </button>
-            <button
-              type="button"
-              aria-label="Buscar recetas"
-              aria-expanded={searching}
-              onClick={() => {
-                setSearching((s) => !s)
-                setQ('')
-              }}
-            >
-              <Icon name={searching ? 'close' : 'search'} />
-            </button>
-          </div>
-        </header>
-
-        {searching ? (
-          <div className="home-search">
-            <SearchBar value={q} onChange={setQ} placeholder="Busca tu próxima receta" autoFocus />
-          </div>
-        ) : null}
-
-        <div className="chips" role="tablist" aria-label="Momento del día">
-          {MEALS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="tab"
-              aria-selected={meal === m && !query}
-              className={`chip${meal === m && !query ? ' is-active' : ''}`}
-              onClick={() => {
-                setMeal(m)
-                setQ('')
-              }}
-            >
-              {m}
-            </button>
-          ))}
+    <main className="page">
+      <header className="home-head">
+        <div>
+          <h1>Hola, {user?.name}</h1>
+          <p>¿Qué cocinamos hoy?</p>
         </div>
+        <div className="home-head__icons">
+          <button
+            type="button"
+            className="glass"
+            aria-label="Notificaciones"
+            onClick={() =>
+              showToast(
+                favorites.length
+                  ? `Tienes ${favorites.length} receta${favorites.length === 1 ? '' : 's'} guardada${favorites.length === 1 ? '' : 's'} para cocinar`
+                  : 'Sin notificaciones nuevas',
+              )
+            }
+          >
+            <Icon name="notifications" />
+          </button>
+          <button
+            type="button"
+            className="glass"
+            aria-label="Buscar recetas"
+            aria-expanded={searching}
+            onClick={() => {
+              setSearching((s) => !s)
+              setQ('')
+            }}
+          >
+            <Icon name={searching ? 'close' : 'search'} />
+          </button>
+        </div>
+      </header>
 
-        <h2 className="section">{query ? 'Resultados' : 'Lo más buscado'}</h2>
-        {list.length ? (
-          <div className="grid">
-            {list.map((r) => (
-              <RecipeCard key={r.id} recipe={r} />
-            ))}
-          </div>
-        ) : (
-          <p className="empty">No encontramos recetas para “{q}”.</p>
-        )}
-      </main>
-      <BottomNav />
-    </>
+      <AnimatePresence initial={false}>
+        {searching ? (
+          <motion.div
+            key="search"
+            className="home-search"
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            transition={{ duration: 0.22 }}
+          >
+            <SearchBar value={q} onChange={setQ} placeholder="Busca tu próxima receta" autoFocus />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <div className="chips glass" role="tablist" aria-label="Momento del día">
+        {MEALS.map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={meal === m && !query}
+            className={`chip${meal === m && !query ? ' is-active' : ''}`}
+            onClick={() => {
+              setMeal(m)
+              setQ('')
+            }}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <h2 className="section">{query ? 'Resultados' : 'Lo más buscado'}</h2>
+      {list.length ? (
+        <CardGrid key={query ? 'search' : meal} recipes={list} />
+      ) : (
+        <p className="empty">No encontramos recetas para “{q}”.</p>
+      )}
+    </main>
   )
 }

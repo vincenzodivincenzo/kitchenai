@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../state/store'
 import Icon from '../components/Icon'
+import Logo from '../components/Logo'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SOCIAL = [
@@ -71,102 +73,134 @@ export default function Login() {
   }
 
   return (
-    <main className="page login">
-      <form className="login__form" onSubmit={submit} noValidate>
-        {mode === 'register' ? (
-          <div className={`field${nameErr ? ' is-error' : ''}`}>
-            <label htmlFor="name">Nombre</label>
-            <input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="given-name"
-            />
+    <main className="page page--nonav login">
+      <motion.div
+        className="login__panel glass"
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+      >
+        <div className="login__brand">
+          <div className="login__brand-logo">
+            <Logo />
           </div>
-        ) : null}
+          <h1>KitchenAi</h1>
+        </div>
 
-        <div className={`field${emailErr ? ' is-error' : ''}`}>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            aria-invalid={emailErr}
-          />
-          {email ? (
+        <form className="login__form" onSubmit={submit} noValidate>
+          <AnimatePresence initial={false}>
+            {mode === 'register' ? (
+              <motion.div
+                key="name"
+                className={`field${nameErr ? ' is-error' : ''}`}
+                initial={{ opacity: 0, height: 0, marginBottom: -16 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
+                exit={{ opacity: 0, height: 0, marginBottom: -16 }}
+                transition={{ duration: 0.22 }}
+              >
+                <label htmlFor="name">Nombre</label>
+                <input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="given-name"
+                />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <div className={`field${emailErr ? ' is-error' : ''}`}>
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              aria-invalid={emailErr}
+            />
+            {email ? (
+              <button
+                type="button"
+                className="field__icon"
+                onClick={() => setEmail('')}
+                aria-label="Borrar email"
+              >
+                <Icon name="cancel" />
+              </button>
+            ) : null}
+          </div>
+
+          <div className={`field${passErr ? ' is-error' : ''}`}>
+            <label htmlFor="pass">Contraseña</label>
+            <input
+              id="pass"
+              type={show ? 'text' : 'password'}
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              aria-invalid={passErr}
+            />
             <button
               type="button"
               className="field__icon"
-              onClick={() => setEmail('')}
-              aria-label="Borrar email"
+              onClick={() => setShow((s) => !s)}
+              aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              aria-pressed={show}
             >
-              <Icon name="cancel" />
+              <Icon name={show ? 'visibility' : 'visibility_off'} />
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {msg ? (
+              <motion.p
+                key="msg"
+                className="login__msg"
+                role="alert"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                {msg}
+              </motion.p>
+            ) : null}
+          </AnimatePresence>
+
+          <button type="submit" className="btn btn--dark login__submit">
+            {mode === 'login' ? 'Ingresar' : 'Crear cuenta'}
+          </button>
+
+          {mode === 'login' ? (
+            <button type="button" className="login__link" onClick={forgot}>
+              ¿Olvidaste tu contraseña?
             </button>
           ) : null}
-        </div>
+        </form>
 
-        <div className={`field${passErr ? ' is-error' : ''}`}>
-          <label htmlFor="pass">Contraseña</label>
-          <input
-            id="pass"
-            type={show ? 'text' : 'password'}
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            aria-invalid={passErr}
-          />
-          <button
-            type="button"
-            className="field__icon"
-            onClick={() => setShow((s) => !s)}
-            aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            aria-pressed={show}
-          >
-            <Icon name={show ? 'visibility' : 'visibility_off'} />
-          </button>
-        </div>
-
-        {msg ? (
-          <p className="login__msg" role="alert">
-            {msg}
-          </p>
-        ) : null}
-
-        <button type="submit" className="btn btn--dark login__submit">
-          {mode === 'login' ? 'Ingresar' : 'Crear cuenta'}
-        </button>
-
-        {mode === 'login' ? (
-          <button type="button" className="login__link" onClick={forgot}>
-            ¿Olvidaste tu contraseña?
-          </button>
-        ) : null}
-      </form>
-
-      <div className="login__alt">
-        <p>O inicia sesión con</p>
-        <div className="social">
-          {SOCIAL.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => social(s.id)}
-              aria-label={`Iniciar sesión con ${s.id}`}
-            >
-              <Icon name={s.icon} />
+        <div className="login__alt">
+          <p>O inicia sesión con</p>
+          <div className="social">
+            {SOCIAL.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => social(s.id)}
+                aria-label={`Iniciar sesión con ${s.id}`}
+              >
+                <Icon name={s.icon} />
+              </button>
+            ))}
+          </div>
+          <p>
+            {mode === 'login' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+            <button type="button" className="link" onClick={switchMode}>
+              {mode === 'login' ? 'Regístrate' : 'Ingresa'}
             </button>
-          ))}
+          </p>
         </div>
-        <p>
-          {mode === 'login' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
-          <button type="button" className="link" onClick={switchMode}>
-            {mode === 'login' ? 'Regístrate' : 'Ingresa'}
-          </button>
-        </p>
-      </div>
+      </motion.div>
     </main>
   )
 }
